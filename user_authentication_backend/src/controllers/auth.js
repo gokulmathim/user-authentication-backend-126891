@@ -14,11 +14,29 @@ class AuthController {
       if (!username || !password) {
         return res.status(400).json({ message: 'Username and password are required' });
       }
+
+      // Enforce password strength requirements BEFORE registration
+      if (
+        typeof password !== "string" ||
+        password.length < 8 ||
+        !/[!@#$%^&*()\-_=+[\]{};:'",.<>/?\\|`~]/.test(password)
+      ) {
+        // General special character set (can be tailored further)
+        return res.status(400).json({
+          message: 'Password must be at least 8 characters long and include at least one special character.'
+        });
+      }
+
       await authService.register(username, password);
       return res.status(201).json({ message: 'User registered successfully' });
     } catch (err) {
       if (err.message === 'User already exists') {
         return res.status(409).json({ message: 'Username already taken' });
+      }
+      if (err.message === 'PasswordTooWeak') {
+        return res.status(400).json({
+          message: 'Password must be at least 8 characters long and include at least one special character.'
+        });
       }
       return res.status(500).json({ message: 'Registration failed', error: err.message });
     }
