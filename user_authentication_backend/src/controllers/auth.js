@@ -1,4 +1,5 @@
 const authService = require('../services/auth');
+const passwordResetService = require('../services/passwordReset');
 
 /**
  * Auth Controller
@@ -19,7 +20,7 @@ class AuthController {
       if (
         typeof password !== "string" ||
         password.length < 8 ||
-        !/[!@#$%^&*()\-_=+[\]{};:'",.<>/?\\|`~]/.test(password)
+        !/[!@#$%^&*()\-_=+\[\]{};:'",.<>\/?\\|`~]/.test(password)
       ) {
         // General special character set (can be tailored further)
         return res.status(400).json({
@@ -39,6 +40,34 @@ class AuthController {
         });
       }
       return res.status(500).json({ message: 'Registration failed', error: err.message });
+    }
+  }
+
+  /**
+   * Handle forgot password requests.
+   */
+  // PUBLIC_INTERFACE
+  async forgotPassword(req, res) {
+    /**
+     * POST /forgot-password
+     * Accepts: { email }
+     * - Checks if user exists by email (using username as email for demo)
+     * - Generates a reset token if found, simulates sending email
+     * - Mocks email sending if real config is not set
+     * Returns: { message }
+     */
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ message: 'Email is required' });
+      }
+      // For demo, username is treated as email
+      const resetInfo = await passwordResetService.initiatePasswordReset(email);
+      // Avoid revealing if the email does/does not exist
+      return res.status(200).json({ message: 'If a user with that email exists, a reset link has been sent.' });
+    } catch (err) {
+      console.error('Forgot password error:', err);
+      return res.status(500).json({ message: 'Could not initiate password reset', error: err.message });
     }
   }
 
