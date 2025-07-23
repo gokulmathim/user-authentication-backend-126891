@@ -18,6 +18,15 @@ class AuthService {
    */
   // PUBLIC_INTERFACE
   async register(username, password) {
+    // Check password strength in service for additional safety
+    if (
+      typeof password !== "string" ||
+      password.length < 8 ||
+      !/[!@#$%^&*()\-_=+[\]{};:'",.<>/?\\|`~]/.test(password)
+    ) {
+      // Throw error with code for controller to catch
+      throw new Error('PasswordTooWeak');
+    }
     return await userModel.createUser(username, password);
   }
 
